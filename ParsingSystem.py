@@ -104,7 +104,7 @@ class ParsingSystem:
         """
         if self.canApply(c,t):
 
-	        if t.startswith("L"):
+	        if t.startswith("R"):
         		se = t.index('(')
         		ee = t.index(')')
 	        	#Apply Left arc from paper
@@ -123,7 +123,7 @@ class ParsingSystem:
 		        #c.stack.push(w_i);
 
 
-	        elif t.startswith("R"):
+	        elif t.startswith("L"):
         		se = t.index('(')
         		ee = t.index(')')
 	        	#Apply Right arc from paper
