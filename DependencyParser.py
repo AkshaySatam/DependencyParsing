@@ -340,7 +340,7 @@ def getFeatures(c):
     labelIDs = []
     tagIDs  = []
 
-    print elementList
+   # print elementList
 
     for i in elementList:
         wordIDs.append(getWordID(c.getWord(i)))
@@ -350,7 +350,7 @@ def getFeatures(c):
 
 
     for i in elementList[6:]:
-	print "element: ",i
+	#print "element: ",i
         labelIDs.append(getLabelID(c.getLabel(i)))
 
     mergedList = wordIDs + tagIDs + labelIDs
