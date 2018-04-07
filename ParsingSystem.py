@@ -127,8 +127,8 @@ class ParsingSystem:
         		se = t.index('(')
         		ee = t.index(')')
 	        	#Apply Right arc from paper
-	        	w_j = c.getStack(1)
-		        w_i = c.getStack(0)
+	        	w_j = c.getStack(1) #hAS
+		        w_i = c.getStack(0) #good
 
 				#add right arc
 		        c.addArc(w_i,w_j,t[se+1:ee])

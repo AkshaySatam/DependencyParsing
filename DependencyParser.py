@@ -78,15 +78,20 @@ class DependencyParserModel(object):
 
 
             #Defining the placeholders. Need to check on the sizes
-            self.train_inputs = tf.placeholder(tf.int32, shape=[embedding_size])
-            self.train_labels = tf.placeholder(tf.int32, shape=[embedding_size, 1])
-            self.test_inputs = tf.placeholder(tf.int32, shape=[embedding_size])
+            self.train_inputs = tf.placeholder(tf.int32, shape=(Config.batch_size,Config.n_Tokens))
+            self.train_labels = tf.placeholder(tf.int32, shape=(Config.batch_size,parsing_system.numTransitions()))
+            self.test_inputs = tf.placeholder(tf.int32, shape=(1,Config.n_Tokens))
 
             #Defining the parameters of the model as variables
-            weights_input = tf.Variable()
-            bias_input = tf.Variable()
-            weights_output = tf.Variable()
 
+
+            weights_input = tf.Variable(tf.truncated_normal(Config.n_Tokens*Config.embedding_size,Config.hidden_size))
+            #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))
+            embed = tf.nn.embedding_lookup(embeddings, train_inputs)
+            biases_input = tf.Variable(tf.zeros(Config.hidden_size))
+            weights_output = tf.Variable(tf.truncated_normal(parsing_system.numTransitions(),Config.hidden_size))
+
+            self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
             optimizer = tf.train.GradientDescentOptimizer(Config.learning_rate)
             grads = optimizer.compute_gradients(self.loss)
@@ -206,7 +211,12 @@ class DependencyParserModel(object):
 
         =======================================================
         """
-        
+        embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
+  		prod = tf.transpose(tf.matmul(embedArray,weights_input))
+  		t = tf.pow(tf.add(prod,biases_input, name = None),3)
+  		p = tf.nn.softmax(tf.matmul(weights_output,t))
+  		print (p)
+  		return p
 
 
 
@@ -627,7 +637,7 @@ if __name__ == '__main__':
     print parsing_system.rootLabel
 
     print "Generating Traning Examples"
-    trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
+    # trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
     print "Done."
 
     # Build the graph model
