@@ -211,8 +211,8 @@ class DependencyParserModel(object):
 
         =======================================================
         """
-        embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
-  		prod = tf.transpose(tf.matmul(embedArray,weights_input))
+		embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
+		prod = tf.transpose(tf.matmul(embedArray,weights_input))
   		t = tf.pow(tf.add(prod,biases_input, name = None),3)
   		p = tf.nn.softmax(tf.matmul(weights_output,t))
   		print (p)
