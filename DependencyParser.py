@@ -85,11 +85,11 @@ class DependencyParserModel(object):
             #Defining the parameters of the model as variables
 
 
-            weights_input = tf.Variable(tf.truncated_normal(Config.n_Tokens*Config.embedding_size,Config.hidden_size))
+            weights_input = tf.Variable(tf.truncated_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
             #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))
-            embed = tf.nn.embedding_lookup(embeddings, train_inputs)
+            embed = tf.nn.embedding_lookup(self.embeddings, self.train_inputs)
             biases_input = tf.Variable(tf.zeros(Config.hidden_size))
-            weights_output = tf.Variable(tf.truncated_normal(parsing_system.numTransitions(),Config.hidden_size))
+            weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
 
             self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
@@ -211,12 +211,14 @@ class DependencyParserModel(object):
 
         =======================================================
         """
-		embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
-		prod = tf.transpose(tf.matmul(embedArray,weights_input))
-  		t = tf.pow(tf.add(prod,biases_input, name = None),3)
-  		p = tf.nn.softmax(tf.matmul(weights_output,t))
-  		print (p)
-  		return p
+	embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
+	prod = tf.matmul(embedArray,weights_input)
+	print("Prod ",prod)
+  	t = tf.pow(tf.add(prod,biases_input, name = None),3)
+	print("T ",t)
+  	p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
+  	print (p)
+  	return p
 
 
 
