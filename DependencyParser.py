@@ -94,13 +94,13 @@ class DependencyParserModel(object):
 
             #Changes to remove -1
             condition = tf.equal(self.train_labels, -1)
-	    	case_true = tf.ones([Config.batch_size,parsing_system.numTransitions()],tf.int32)
-	    	case_false = self.train_labels
-	    	tf.where(condition, case_true, case_false)
+	    case_true = tf.ones([Config.batch_size,parsing_system.numTransitions()],tf.int32)
+	    case_false = self.train_labels
+	    tf.where(condition, case_true, case_false)
 			
-	    	l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
+	    l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
             l2 = Config.lam / 2 * l2
-	    	ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=self.train_labels,logits=self.prediction,dim=-1,name=None)
+	    ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=self.train_labels,logits=self.prediction,dim=-1,name=None)
 
             self.loss = tf.reduce_mean(ce+l2)
 
@@ -228,17 +228,17 @@ class DependencyParserModel(object):
 		#if tf.size(tf.shape(embed)) == tf.size(shapeT):
 		#	embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
 		#else:
-		embedArray = embed
+	embedArray = embed
 		#print embedArray
 		
-		prod = tf.matmul(embedArray,weights_input)
-		print("Prod ",prod)
-	  	t = tf.pow(tf.add(prod,biases_input, name = None),3)
-		print("T ",t)
+	prod = tf.matmul(embedArray,weights_input)
+	#print("Prod ",prod)
+	t = tf.pow(tf.add(prod,biases_input, name = None),3)
+	#print("T ",t)
 	  	#p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
-	  	p = tf.matmul(weights_output,tf.transpose(t))
-	  	print (p)
-	  	return tf.transpose(p)
+	p = tf.matmul(weights_output,tf.transpose(t))
+	#print (p)
+	return tf.transpose(p)
 
 
 
@@ -659,7 +659,7 @@ if __name__ == '__main__':
     print parsing_system.rootLabel
 
     print "Generating Traning Examples"
-    # trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
+    trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
     print "Done."
 
     # Build the graph model
