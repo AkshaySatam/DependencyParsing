@@ -94,7 +94,7 @@ class DependencyParserModel(object):
 
             #Changes to remove -1
             condition = tf.equal(self.train_labels, -1)
-	    case_true = tf.ones([Config.batch_size,parsing_system.numTransitions()],tf.int32)
+	    case_true = tf.zeros([Config.batch_size,parsing_system.numTransitions()],tf.int32)
 	    case_false = self.train_labels
 	    tf.where(condition, case_true, case_false)
 			
