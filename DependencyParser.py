@@ -79,28 +79,36 @@ class DependencyParserModel(object):
 
             #Defining the placeholders. Need to check on the sizes
             self.train_inputs = tf.placeholder(tf.int32, shape=(Config.batch_size,Config.n_Tokens))
-            self.train_labels = tf.placeholder(tf.int32, shape=(Config.batch_size,parsing_system.numTransitions()))
+            self.train_labels = tf.placeholder(tf.float32, shape=(Config.batch_size,parsing_system.numTransitions()))
             self.test_inputs = tf.placeholder(tf.int32, shape=(Config.n_Tokens))
 
             #Defining the parameters of the model as variables
-            weights_input = tf.Variable(tf.truncated_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
-            #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))
+            
+            #weights_input = tf.Variable(tf.truncated_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
+            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=0.1))
+            
+            #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))            
             e = tf.nn.embedding_lookup(self.embeddings, self.train_inputs)
             embed = tf.reshape(e,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
             biases_input = tf.Variable(tf.zeros(Config.hidden_size))
-            weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
+            
+            #weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
+            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
 
             self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
             #Changes to remove -1
             condition = tf.equal(self.train_labels, -1)
-	    case_true = tf.zeros([Config.batch_size,parsing_system.numTransitions()],tf.int32)
-	    case_false = self.train_labels
-	    tf.where(condition, case_true, case_false)
+            case_true = tf.reshape(tf.multiply(tf.ones([Config.batch_size * parsing_system.numTransitions()], tf.float32), 0.0),[Config.batch_size, parsing_system.numTransitions()]);
+	    	#case_true = (tf.ones([Config.batch_size*parsing_system.numTransitions()],tf.int32),0)
+	    	
+	    	# case_true = tf.zeros([Config.batch_size,parsing_system.numTransitions()],tf.int32)
+	    	case_false = self.train_labels
+	    	tf.where(condition, case_true, case_false)
 			
-	    l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
+	    	l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
             l2 = Config.lam / 2 * l2
-	    ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=self.train_labels,logits=self.prediction,dim=-1,name=None)
+	    	ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=self.train_labels,logits=self.prediction,dim=-1,name=None)
 
             self.loss = tf.reduce_mean(ce+l2)
 
@@ -228,17 +236,17 @@ class DependencyParserModel(object):
 		#if tf.size(tf.shape(embed)) == tf.size(shapeT):
 		#	embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
 		#else:
-	embedArray = embed
+		embedArray = embed
 		#print embedArray
 		
-	prod = tf.matmul(embedArray,weights_input)
-	#print("Prod ",prod)
-	t = tf.pow(tf.add(prod,biases_input, name = None),3)
-	#print("T ",t)
+		prod = tf.matmul(embedArray,weights_input)
+		#print("Prod ",prod)
+		t = tf.pow(tf.add(prod,biases_input, name = None),3)
+		#print("T ",t)
 	  	#p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
-	p = tf.matmul(weights_output,tf.transpose(t))
-	#print (p)
-	return tf.transpose(p)
+		p = tf.matmul(weights_output,tf.transpose(t))
+		#print (p)
+		return tf.transpose(p)
 
 
 
@@ -371,21 +379,20 @@ def getFeatures(c):
     wordIDs = []
     labelIDs = []
     tagIDs  = []
-
+    mergedList = []
    # print elementList
 
     for i in elementList:
-        wordIDs.append(getWordID(c.getWord(i)))
+        mergedList.append(getWordID(c.getWord(i)))
 
     for i in elementList:
-        tagIDs.append(getPosID(c.getPOS(i)))
-
+        mergedList.append(getPosID(c.getPOS(i)))
 
     for i in elementList[6:]:
 	#print "element: ",i
-        labelIDs.append(getLabelID(c.getLabel(i)))
+        mergedList.append(getLabelID(c.getLabel(i)))
 
-    mergedList = wordIDs + tagIDs + labelIDs
+    #mergedList = wordIDs + tagIDs + labelIDs
     # Method 1
     return mergedList
 
@@ -587,7 +594,8 @@ def genTrainExamples(sents, trees):
     features = []
     labels = []
     pbar = ProgressBar()
-    for i in pbar(range(len(sents))):
+    #for i in pbar(range(len(sents))):
+    for i in pbar(range(1000)):
         if trees[i].isProjective():
             c = parsing_system.initialConfiguration(sents[i])
 
