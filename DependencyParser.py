@@ -93,13 +93,13 @@ class DependencyParserModel(object):
 
             #Changes to remove -1
             condition = tf.equal(self.train_labels, -1)
-			case_true = tf.ones([Config.batch_size,parsing_system.numTransitions()],tf.int32)
-			case_false = self.train_labels
-			tf.where(condition, case_true, case_false)
+	    case_true = tf.ones([Config.batch_size,parsing_system.numTransitions()],tf.int32)
+	    case_false = self.train_labels
+	    tf.where(condition, case_true, case_false)
 			
-			l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
+	    l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
             l2 = Config.lam / 2 * l2
-			ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=self.prediction,logits=self.train_labels,dim=-1,name=None)
+	    ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=self.train_labels,logits=self.prediction,dim=-1,name=None)
 
             self.loss = tf.reduce_mean(ce+l2)
 
@@ -221,16 +221,20 @@ class DependencyParserModel(object):
 
         =======================================================
         """
-	shapeT = tf.constant([Config.batch_size,Config.n_Tokens,Config.embedding_size])
-	if tf.equal(tf.shape(embed),shapeT):
+        shapeT = tf.Variable(tf.zeros(shape=(Config.batch_size,Config.n_Tokens,Config.embedding_size)),tf.float32)
+	print embed
+	print tf.shape(shapeT),"........", tf.shape(embed),"??????", tf.shape(shapeT)==tf.shape(embed)
+	if tf.size(tf.shape(embed)) == tf.size(shapeT):
 		embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
 	else:
 		embedArray = embed
+	print embedArray
 	prod = tf.matmul(embedArray,weights_input)
 	print("Prod ",prod)
   	t = tf.pow(tf.add(prod,biases_input, name = None),3)
 	print("T ",t)
-  	p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
+  	#p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
+  	p = tf.matmul(weights_output,tf.transpose(t))
   	print (p)
   	return tf.transpose(p)
 
