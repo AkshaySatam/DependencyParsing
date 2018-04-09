@@ -103,12 +103,12 @@ class DependencyParserModel(object):
 	    	#case_true = (tf.ones([Config.batch_size*parsing_system.numTransitions()],tf.int32),0)
 	    	
 	    	# case_true = tf.zeros([Config.batch_size,parsing_system.numTransitions()],tf.int32)
-	    case_false = self.train_labels
-	    newLabels = tf.where(condition, case_true, case_false)
+	    	case_false = self.train_labels
+	    	newLabels = tf.where(condition, case_true, case_false)
 			
-	    l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
+	    	l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
             l2 = Config.lam / 2 * l2
-	    ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=newLabels,logits=self.prediction,dim=-1,name=None)
+	    	ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=newLabels,logits=self.prediction,dim=-1,name=None)
 
             self.loss = tf.reduce_mean(ce+l2)
 
@@ -236,17 +236,17 @@ class DependencyParserModel(object):
 		#if tf.size(tf.shape(embed)) == tf.size(shapeT):
 		#	embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
 		#else:
-	embedArray = embed
+		embedArray = embed
 		#print embedArray
 		
-	prod = tf.matmul(embedArray,weights_input)
+		prod = tf.matmul(embedArray,weights_input)
 		#print("Prod ",prod)
-	t = tf.pow(tf.add(prod,biases_input, name = None),3)
+		t = tf.pow(tf.add(prod,biases_input, name = None),3)
 		#print("T ",t)
 	  	#p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
-	p = tf.matmul(weights_output,tf.transpose(t))
+		p = tf.matmul(weights_output,tf.transpose(t))
 		#print (p)
-	return tf.transpose(p)
+		return tf.transpose(p)
 
 
 

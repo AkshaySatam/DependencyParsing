@@ -111,7 +111,7 @@ class ParsingSystem:
 	        	w_j = c.getStack(1)
 		        w_i = c.getStack(0)
 
-		        #add left arc
+		        #add left arcfnum
 		        #head word should be w_i
 		        # We will have to get these labels
 		        c.addArc(w_j,w_i,t[se+1:ee])
@@ -142,10 +142,10 @@ class ParsingSystem:
 	        elif t.startswith("S"):
 	        	#Apply Shift from paper
 	        	c.shift()
-	 #	else:
-	 #		print ("illegal transaction")
+	    
+        return c
 
-	return c
+
 
 
         """
@@ -168,12 +168,6 @@ class ParsingSystem:
 	        else:
 	        	#Shift
 		"""
-
-
-
-
-
-
 
 
     def numTransitions(self):
