@@ -93,7 +93,7 @@ class DependencyParserModel(object):
             biases_input = tf.Variable(tf.zeros(Config.hidden_size*3))
             
             #weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
-            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
+            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size * 3],stddev=0.1))
 
             self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
@@ -234,20 +234,24 @@ class DependencyParserModel(object):
 	
 	wordsBias = biases_input[0:200]
 	posBias = biases_input[200:400]
-	labelBias = biases_input[400,:]
+	labelBias = biases_input[400:]
 	
-	prod1 = tf.matmul(wordEmbedding,wordWeights)
+	prod1 = tf.matmul(wordsEmbedding,wordsWeights)
 	prod2 = tf.matmul(posEmbedding,posWeights)
 	prod3 = tf.matmul(labelEmbedding,labelWeights)
 
-	t1 = tf.pow(tf.add(prod1,wordBias, name = None),3)
+	t1 = tf.pow(tf.add(prod1,wordsBias, name = None),3)
 	t2 = tf.pow(tf.add(prod2,posBias, name = None),3)
 	t3 = tf.pow(tf.add(prod3,labelBias, name = None),3)
-	
-	t4 = np.concatenate((t1, t2), axis=0)	
-	t = np.concatenate((t3, t4), axis=0)
+
+	print (t1)
+	print t2, t3	
+	t = tf.concat([t1, t2, t3],axis=1)
+	print t	
+	#t = np.concatenate((t4, t3))
 	
 	p = tf.matmul(weights_output,tf.transpose(t))
+	print p
 	return tf.transpose(p)
 		
 
@@ -594,8 +598,8 @@ def genTrainExamples(sents, trees):
     features = []
     labels = []
     pbar = ProgressBar()
-    for i in pbar(range(len(sents))):
-    #for i in pbar(range(1000)):
+    #for i in pbar(range(len(sents))):
+    for i in pbar(range(1000)):
         if trees[i].isProjective():
             c = parsing_system.initialConfiguration(sents[i])
 
@@ -667,7 +671,7 @@ if __name__ == '__main__':
     print parsing_system.rootLabel
 
     print "Generating Traning Examples"
-    #trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
+    trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
     print "Done."
 
     # Build the graph model
