@@ -90,7 +90,7 @@ class DependencyParserModel(object):
             #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))            
             e = tf.nn.embedding_lookup(self.embeddings, self.train_inputs)
             embed = tf.reshape(e,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
-            biases_input = tf.Variable(tf.zeros(Config.hidden_size))
+            biases_input = tf.Variable(tf.zeros(Config.hidden_size*3))
             
             #weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
             weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
@@ -99,16 +99,16 @@ class DependencyParserModel(object):
 
             #Changes to remove -1
             condition = tf.equal(self.train_labels, -1)
-            case_true = tf.reshape(tf.multiply(tf.ones([Config.batch_size * parsing_system.numTransitions()], tf.float32), 0.0),[Config.batch_size, parsing_system.numTransitions()]);
+            case_true = tf.reshape(tf.zeros([Config.batch_size * parsing_system.numTransitions()], tf.float32),[Config.batch_size, parsing_system.numTransitions()]);
 	    	#case_true = (tf.ones([Config.batch_size*parsing_system.numTransitions()],tf.int32),0)
 	    	
 	    	# case_true = tf.zeros([Config.batch_size,parsing_system.numTransitions()],tf.int32)
-	    	case_false = self.train_labels
-	    	newLabels = tf.where(condition, case_true, case_false)
+	    case_false = self.train_labels
+	    newLabels = tf.where(condition, case_true, case_false)
 			
-	    	l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)
-            l2 = Config.lam / 2 * l2
-	    	ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=newLabels,logits=self.prediction,dim=-1,name=None)
+            l2 = tf.nn.l2_loss(weights_input) + tf.nn.l2_loss(weights_output)+ tf.nn.l2_loss(biases_input) 
+	    l2 = Config.lam / 2 * l2
+	    ce = tf.nn.softmax_cross_entropy_with_logits_v2(_sentinel=None,labels=newLabels,logits=self.prediction,dim=-1,name=None)
 
             self.loss = tf.reduce_mean(ce+l2)
 
@@ -214,42 +214,42 @@ class DependencyParserModel(object):
         Util.writeConll('result_test.conll', testSents, predTrees)
 
 
+	"""
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
-        """
+	embedArray = embed
+	prod = tf.matmul(embedArray,weights_input)
+	#Cube activation function
+	t = tf.pow(tf.add(prod,biases_input, name = None),3)
+	p = tf.matmul(weights_output,tf.transpose(t))
+	return tf.transpose(p) """
 
-        :param embed:
-        :param weights:
-        :param biases:
-        :return:
-        """
-        """
-        =======================================================
+    def forward_pass(self, embed, weights_input, biases_input, weights_output):
+	wordsEmbedding = embed[:,0:18*50]
+	posEmbedding = embed[:,18*50:36*50]
+	labelEmbedding = embed[:,36*50:]
 
-        Implement the forwrad pass described in
-        "A Fast and Accurate Dependency Parser using Neural Networks"(2014)
+	wordsWeights = weights_input[0:18*50,:]
+	posWeights = weights_input[18*50:36*50,:]
+	labelWeights = weights_input[36*50:,:]
+	
+	wordsBias = biases_input[0:200]
+	posBias = biases_input[200:400]
+	labelBias = biases_input[400,:]
+	
+	prod1 = tf.matmul(wordEmbedding,wordWeights)
+	prod2 = tf.matmul(posEmbedding,posWeights)
+	prod3 = tf.matmul(labelEmbedding,labelWeights)
 
-        =======================================================
-        """
-        #shapeT = tf.Variable(tf.zeros(shape=(Config.batch_size,Config.n_Tokens,Config.embedding_size)),tf.float32)
-		#print embed
-		#print tf.shape(shapeT),"........", tf.shape(embed),"??????", tf.shape(shapeT)==tf.shape(embed)
-		#if tf.size(tf.shape(embed)) == tf.size(shapeT):
-		#	embedArray = tf.reshape(embed,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
-		#else:
-		embedArray = embed
-		#print embedArray
+	t1 = tf.pow(tf.add(prod1,wordBias, name = None),3)
+	t2 = tf.pow(tf.add(prod2,posBias, name = None),3)
+	t3 = tf.pow(tf.add(prod3,labelBias, name = None),3)
+	
+	t4 = np.concatenate((t1, t2), axis=0)	
+	t = np.concatenate((t3, t4), axis=0)
+	
+	p = tf.matmul(weights_output,tf.transpose(t))
+	return tf.transpose(p)
 		
-		prod = tf.matmul(embedArray,weights_input)
-		#print("Prod ",prod)
-		t = tf.pow(tf.add(prod,biases_input, name = None),3)
-		#print("T ",t)
-	  	#p = tf.nn.softmax(tf.matmul(weights_output,tf.transpose(t)))
-		p = tf.matmul(weights_output,tf.transpose(t))
-		#print (p)
-		return tf.transpose(p)
-
-
-
 
 def genDictionaries(sents, trees):
     word = []
@@ -667,7 +667,7 @@ if __name__ == '__main__':
     print parsing_system.rootLabel
 
     print "Generating Traning Examples"
-    trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
+    #trainFeats, trainLabels = genTrainExamples(trainSents, trainTrees)
     print "Done."
 
     # Build the graph model
