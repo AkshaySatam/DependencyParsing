@@ -257,22 +257,22 @@ class DependencyParserModel(object):
 	return tf.transpose(p)
 	"""
 
-	def forward_pass(self, embed, weights_input, biases_input, weights_output):
-		embedArray = embed
-		w1 = weights_input[0:48*50,:]
-		w2 = weights_input[48*50:,:]
-		b1 = biases_input[0:200]
-		b2 = biases_input[200:]
+    def forward_pass(self, embed, weights_input, biases_input, weights_output):
+	embedArray = embed
+	w1 = weights_input[0:48*50,:]
+	w2 = weights_input[48*50:,:]
+	b1 = biases_input[0:200]
+	b2 = biases_input[200:]
 
-		prod1 = tf.matmul(embedArray,w1)
-		#Cube activation function
-		t1 = tf.pow(tf.add(prod1,b1, name = None),3)
+	prod1 = tf.matmul(embedArray,w1)
+	#Cube activation function
+	t1 = tf.pow(tf.add(prod1,b1, name = None),3)
+	t2 = tf.matmul(t1,tf.transpose(w2))
+	t3 = tf.pow(tf.add(t2,b2, name = None),3)		
 
-		t2 = tf.matmul(t1,tf.transpose(w2))
-		t3 = tf.pow(tf.add(t2,b2, name = None),3)		
-
-		p = tf.matmul(t3,weights_output)
-		return tf.transpose(p)		
+	p = tf.matmul(t3,tf.transpose(weights_output))
+	#return tf.transpose(p)		
+	return p		
 
 
 def genDictionaries(sents, trees):
@@ -618,8 +618,8 @@ def genTrainExamples(sents, trees):
     features = []
     labels = []
     pbar = ProgressBar()
-    for i in pbar(range(len(sents))):
-    #for i in pbar(range(1000)):
+    #for i in pbar(range(len(sents))):
+    for i in pbar(range(1000)):
         if trees[i].isProjective():
             c = parsing_system.initialConfiguration(sents[i])
 
