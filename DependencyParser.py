@@ -598,8 +598,8 @@ def genTrainExamples(sents, trees):
     features = []
     labels = []
     pbar = ProgressBar()
-    #for i in pbar(range(len(sents))):
-    for i in pbar(range(1000)):
+    for i in pbar(range(len(sents))):
+    #for i in pbar(range(1000)):
         if trees[i].isProjective():
             c = parsing_system.initialConfiguration(sents[i])
 
