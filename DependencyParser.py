@@ -85,15 +85,16 @@ class DependencyParserModel(object):
             #Defining the parameters of the model as variables
             
             #weights_input = tf.Variable(tf.truncated_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
-            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=0.1))
+            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size+Config.hidden_size,Config.hidden_size],stddev=0.1))
             
             #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))            
             e = tf.nn.embedding_lookup(self.embeddings, self.train_inputs)
             embed = tf.reshape(e,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
-            biases_input = tf.Variable(tf.zeros(Config.hidden_size*3))
+            biases_input = tf.Variable(tf.zeros(2 * Config.hidden_size))
             
             #weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
-            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size * 3],stddev=0.1))
+            #Needs to be changed
+            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
 
             self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
@@ -223,6 +224,7 @@ class DependencyParserModel(object):
 	p = tf.matmul(weights_output,tf.transpose(t))
 	return tf.transpose(p) """
 
+	"""
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	wordsEmbedding = embed[:,0:18*50]
 	posEmbedding = embed[:,18*50:36*50]
@@ -253,7 +255,25 @@ class DependencyParserModel(object):
 	p = tf.matmul(weights_output,tf.transpose(t))
 	print p
 	return tf.transpose(p)
-		
+	"""
+
+	def forward_pass(self, embed, weights_input, biases_input, weights_output):
+		embedArray = embed
+		w1 = weights_input[0:48*50,:]
+		w2 = weights_input[48*50:,:]
+		b1 = biases_input[0:200]
+		b2 = biases_input[200:]
+
+		prod1 = tf.matmul(embedArray,w1)
+		#Cube activation function
+		t1 = tf.pow(tf.add(prod1,b1, name = None),3)
+
+		t2 = tf.matmul(t1,tf.transpose(w2))
+		t3 = tf.pow(tf.add(t2,b2, name = None),3)		
+
+		p = tf.matmul(t3,weights_output)
+		return tf.transpose(p)		
+
 
 def genDictionaries(sents, trees):
     word = []
