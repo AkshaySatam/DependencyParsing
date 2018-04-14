@@ -84,17 +84,18 @@ class DependencyParserModel(object):
 
             #Defining the parameters of the model as variables
             
-            #weights_input = tf.Variable(tf.truncated_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
-            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size+Config.hidden_size,Config.hidden_size],stddev=0.1))
+            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=0.1))
+            #weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size+Config.hidden_size,Config.hidden_size],stddev=0.1))
             
             #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))            
             e = tf.nn.embedding_lookup(self.embeddings, self.train_inputs)
             embed = tf.reshape(e,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
-            biases_input = tf.Variable(tf.zeros(2 * Config.hidden_size))
+            #biases_input = tf.Variable(tf.zeros(2 * Config.hidden_size))
+            biases_input = tf.Variable(tf.zeros(Config.hidden_size))
             
-            #weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
+            weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
             #Needs to be changed
-            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
+            #weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
 
             self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
@@ -115,8 +116,9 @@ class DependencyParserModel(object):
 
             optimizer = tf.train.GradientDescentOptimizer(Config.learning_rate)
             grads = optimizer.compute_gradients(self.loss)
-            clipped_grads = [(tf.clip_by_norm(grad, 5), var) for grad, var in grads]
-            self.app = optimizer.apply_gradients(clipped_grads)
+            #clipped_grads = [(tf.clip_by_norm(grad, 5), var) for grad, var in grads]
+            #self.app = optimizer.apply_gradients(clipped_grads)
+            self.app = optimizer.apply_gradients(grads)
 
             # For test data, we only need to get its prediction
             test_embed = tf.nn.embedding_lookup(self.embeddings, self.test_inputs)
@@ -215,14 +217,14 @@ class DependencyParserModel(object):
         Util.writeConll('result_test.conll', testSents, predTrees)
 
 
-	"""
-    def forward_pass(self, embed, weights_input, biases_input, weights_output):
+	
+def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	embedArray = embed
 	prod = tf.matmul(embedArray,weights_input)
 	#Cube activation function
 	t = tf.pow(tf.add(prod,biases_input, name = None),3)
 	p = tf.matmul(weights_output,tf.transpose(t))
-	return tf.transpose(p) """
+	return tf.transpose(p)
 
 	"""
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
@@ -257,6 +259,7 @@ class DependencyParserModel(object):
 	return tf.transpose(p)
 	"""
 
+	"""
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	embedArray = embed
 	w1 = weights_input[0:48*50,:]
@@ -273,7 +276,7 @@ class DependencyParserModel(object):
 	p = tf.matmul(t3,tf.transpose(weights_output))
 	#return tf.transpose(p)		
 	return p		
-
+	"""
 
 def genDictionaries(sents, trees):
     word = []
@@ -618,8 +621,8 @@ def genTrainExamples(sents, trees):
     features = []
     labels = []
     pbar = ProgressBar()
-    #for i in pbar(range(len(sents))):
-    for i in pbar(range(1000)):
+    for i in pbar(range(len(sents))):
+    #for i in pbar(range(1000)):
         if trees[i].isProjective():
             c = parsing_system.initialConfiguration(sents[i])
 
