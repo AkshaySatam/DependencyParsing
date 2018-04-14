@@ -218,7 +218,7 @@ class DependencyParserModel(object):
 
 
 	
-def forward_pass(self, embed, weights_input, biases_input, weights_output):
+    def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	embedArray = embed
 	prod = tf.matmul(embedArray,weights_input)
 	#Cube activation function
@@ -226,7 +226,8 @@ def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	p = tf.matmul(weights_output,tf.transpose(t))
 	return tf.transpose(p)
 
-	"""
+
+	"""   
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	wordsEmbedding = embed[:,0:18*50]
 	posEmbedding = embed[:,18*50:36*50]
@@ -257,9 +258,9 @@ def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	p = tf.matmul(weights_output,tf.transpose(t))
 	print p
 	return tf.transpose(p)
-	"""
 
-	"""
+
+
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	embedArray = embed
 	w1 = weights_input[0:48*50,:]
@@ -275,8 +276,7 @@ def forward_pass(self, embed, weights_input, biases_input, weights_output):
 
 	p = tf.matmul(t3,tf.transpose(weights_output))
 	#return tf.transpose(p)		
-	return p		
-	"""
+	return p """
 
 def genDictionaries(sents, trees):
     word = []
