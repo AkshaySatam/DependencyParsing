@@ -88,18 +88,21 @@ class DependencyParserModel(object):
 
 	    #two layer changes
             #weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size+Config.hidden_size,Config.hidden_size],stddev=0.1))
-            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size+1000,Config.hidden_size],stddev=0.1))
+            #weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size+1000,Config.hidden_size],stddev=0.1))
+            weights_input = tf.Variable(tf.random_normal([Config.n_Tokens*Config.embedding_size,Config.hidden_size],stddev=0.1))
             
             #embed = tf.Variable(tf.truncated_normal(Config.batch_size,Config.n_Tokens*Config.embedding_size))            
             e = tf.nn.embedding_lookup(self.embeddings, self.train_inputs)
             embed = tf.reshape(e,[Config.batch_size,Config.n_Tokens * Config.embedding_size])
 	    #two layer changes
             #biases_input = tf.Variable(tf.zeros(2 * Config.hidden_size))
-            biases_input = tf.Variable(tf.zeros(Config.hidden_size+1000))
+            #biases_input = tf.Variable(tf.zeros(Config.hidden_size+1000))
+            biases_input = tf.Variable(tf.zeros(Config.hidden_size))
             
             #weights_output = tf.Variable(tf.truncated_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=1.0/math.sqrt(Config.embedding_size)))
             #Needs to be changed
-            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),1000],stddev=0.1))
+            #weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),1000],stddev=0.1))
+            weights_output = tf.Variable(tf.random_normal([parsing_system.numTransitions(),Config.hidden_size],stddev=0.1))
 
             self.prediction = self.forward_pass(embed, weights_input, biases_input, weights_output)
 
@@ -221,7 +224,7 @@ class DependencyParserModel(object):
         Util.writeConll('result_test.conll', testSents, predTrees)
 
 
-	"""
+	
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	embedArray = embed
 	prod = tf.matmul(embedArray,weights_input)
@@ -231,7 +234,7 @@ class DependencyParserModel(object):
 	return tf.transpose(p) 
 
 	
-    def forward_pass(self, embed, weights_input, biases_input, weights_output):
+    """def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	wordsEmbedding = embed[:,0:18*50]
 	posEmbedding = embed[:,18*50:36*50]
 	labelEmbedding = embed[:,36*50:]
@@ -282,7 +285,7 @@ class DependencyParserModel(object):
 	p = tf.matmul(t4,tf.transpose(weights_output))
 	#return tf.transpose(p)		
 	return p		
-    	"""
+    	
     def forward_pass(self, embed, weights_input, biases_input, weights_output):
 	embedArray = embed
 	w1 = weights_input[0:48*50,:]
@@ -298,7 +301,8 @@ class DependencyParserModel(object):
 
 	p = tf.matmul(t3,tf.transpose(weights_output))
 	#return tf.transpose(p)		
-	return p		
+	return p
+	"""	
 
 
 
